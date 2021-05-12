@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>{{ title }} - Anteiku coffee</title>
+    <title>{{ title }} - Ultramarineses shop</title>
     {% load static %}
     <link rel="shortcut icon" href="{%  static 'favicon.ico' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'app/content/bootstrap.min.css' %}" />
@@ -22,8 +22,8 @@
                     <span class="icon-bar"></span>
                 </button>
                 <a href="{% url 'home' %}" class="navbar-brand">
-                    <img src="{% static 'app/content/logo-image.jpg' %}" height="60" width="60"/>
-                    Anteiku coffee
+                    <img src="{% static 'app/content/logo-image.png' %}" height="60" width="60"/>
+                    Ultramarineses shop
                 </a>
             </div>
             <div class="navbar-collapse collapse">
@@ -48,13 +48,9 @@
         <hr/>
         <footer class="footer">
             <div class="footer__copyright">
-                <p>&copy; {{ year }} - Anteiku Coffe</p>
+                <p>&copy; {{ year }} - Ultramarineses shop</p>
             </div>
-            <div class="footer__nav">
-                <a href="{% url 'pool' %}" class="footer__nav-link">Обратная связь</a>
-                <a href="#" class="footer__nav-link">Доставка</a>
-                <a href="#" class="footer__nav-link">Оплата</a>
-            </div>
+              
         </footer>
     </div>
     <script src="{% static 'app/scripts/jquery-1.10.2.js' %}"></script>

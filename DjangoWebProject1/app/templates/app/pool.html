@@ -2,35 +2,42 @@
 
 {% block content %}
 {% if form != None %}
-<h2>{{ title }}</h2>
+<h2 class="text-center">{{ title }}</h2>
 <!--<div class="row">-->
 <!--	<div class="col-md-8">-->
 		<section id="loginForm">
 			<form action="." method="post" class="form-horizontal">
 				{% csrf_token %}
-				<h4>{{ message }}</h4>
+				<h4 class="text-center">{{ message }}</h4>
 				<hr />
-				<div class="form-group">
-					<label for="" class="request__label">С чем возникла проблема?</label>
-					{{ form.requestChoice }}
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="" class="request__label">С чем возникла проблема?</label>
+							{{ form.requestChoice }}
+						</div>
+						<div class="form-group">
+							<label for="id_username" class="request__label">Краткое описание</label>
+							{{ form.requestTheme }}
+						</div>
+						<div class="form-group">
+							<label for="id_password" class="request__label">Опишите проблему</label>
+							{{ form.requestText }}
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="" class="request__label">Ваш e-mail:</label>
+							{{ form.requestMail }}
+						</div>
+						<div class="form-group">
+							<label for="" class="request__label">Получить ответ на почту?</label>
+							{{ form.requestRadio }}
+						</div>
+					</div>
 				</div>
-				<div class="form-group">
-					<label for="id_username" class="request__label">Краткое описание</label>
-					{{ form.requestTheme }}
-				</div>
-				<div class="form-group">
-					<label for="id_password" class="request__label">Опишите проблему</label>
-					{{ form.requestText }}
-				</div>
-				<div class="form-group">
-					<label for="" class="request__label">Ваш e-mail:</label>
-					{{ form.requestMail }}
-				</div>
-				<div class="form-group">
-					<label for="" class="request__label">Получить ответ на почту?</label>
-					{{ form.requestRadio }}
-				</div>
-				<div class="form-group">
+				
+				<div class="form-group text-center">
 					<input type="submit" value="Отправить" id="b1" class="btn btn-default" />
 				</div>
 
@@ -95,7 +102,7 @@
     </script>
 
 
-    {% load staticfiles %}
+    {% load static %}
 <script src="{% static 'app/scripts/jquery.validate.min.js' %}"></script>
 
 {% endblock %}
