@@ -28,11 +28,24 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li><a href="{% url 'about' %}">О Нас</a></li>
-                    <li><a href="{% url 'contact' %}">Контакты</a></li>
-                    <li><a href="{% url 'pool' %}">Обратная связь</a></li>
+                   <li role="presentation" class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+                            О нас <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url 'about' %}">О Нас</a></li>
+                            <li><a href="{% url 'contact' %}">Контакты</a></li>
+                            <li><a href="{% url 'pool' %}">Обратная связь</a></li>
+                        </ul>
+                    </li>
                     <li><a href="{% url 'blog' %}">Блог</a></li>
-                    <li><a href="{% url 'video' %}">Видео</a></li>
+                    <li><a href="{% url 'shop' %}">Магазин</a></li>
+                    {% if user.is_authenticated %}
+                    <li><a href="{% url 'myOrders' %}">Мои заказы</a></li>
+                    {% if currentUser.role == 'moderator' or currentUser.role == 'admin'%}
+                    <li><a href="{% url 'orders' %}">Заказы</a></li>
+                    {% endif %}
+                    {% endif %}
                     {% if user.is_superuser %}
                     <li><a href="{% url 'newpost' %}">Добавить статью</a></li>
                     {% endif %}

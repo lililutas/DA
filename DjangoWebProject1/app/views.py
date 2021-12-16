@@ -3,13 +3,18 @@ Definition of views.
 """
 
 from datetime import datetime
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, reverse
 from django.http import HttpRequest
 from .forms import MyRequestForm
 from django.contrib.auth.forms import UserCreationForm
+from django.core.paginator import Paginator
 from django.db import models
 from .models import Blog
 from .models import Comment
+from .models import Shop
+from .models import Orders
+from .models import SubOrders
+from .models import UserProfile
 from .forms import CommentForm
 from .forms import BlogForm
 
@@ -50,18 +55,6 @@ def about(request):
         {
             'title':'О нас',
             'message':'Здесь вы найдете!',
-            'year':datetime.now().year,
-        }
-    )
-
-def links(request):
- 
-    assert isinstance(request, HttpRequest)
-    return render(
-        request,
-        'app/links.html',
-        {
-            'title':'Видео',
             'year':datetime.now().year,
         }
     )
@@ -194,4 +187,188 @@ def newpost(request):
             'year':datetime.now().year,
         }
     )
-                                                          
+
+
+
+def chooseSide(request):
+    currentUser = UserProfile.objects.get(user = request.user)
+    currentUser.choosedSide = request.GET.get('side')
+    currentUser.save()
+    return redirect(reverse('home'))
+    
+
+
+def shop(request, parameter = None):
+    """Renders the shop page."""
+    if parameter == None:
+        products = Shop.objects.all()
+    else:
+        products = Shop.objects.filter(category = parameter)
+
+
+    currentProducts = Paginator(products, 6)
+    page = request.GET.get('page')
+    Products = currentProducts.get_page(page)
+    assert isinstance(request, HttpRequest)
+    return render(
+        request,
+        'app/shop.html',
+        {
+            'title':'Магазин',
+            'products': Products,
+            'year':datetime.now().year,
+        }
+    )
+
+
+def productPage(request, parameter):
+    currentProduct = Shop.objects.get(id = parameter)
+
+    assert isinstance(request, HttpRequest)
+    return render(
+        request,
+        'app/productPage.html',
+        {
+            'title':'Товар',
+            'item': currentProduct,
+            'year':datetime.now().year,
+        }
+    )
+
+def cart(request):
+    currentOrder, status = Orders.objects.get_or_create(holder = request.user, status = 'incart')
+    currentProducts = SubOrders.objects.filter(order = currentOrder)
+
+    assert isinstance(request, HttpRequest)
+    return render(
+        request,
+        'app/cart.html',
+        {
+            'title':'Корзина',
+            'status':'cart',
+            'items': currentProducts,
+            'order': currentOrder,
+            'year':datetime.now().year,
+        }
+    )
+
+def add_to_cart(request):
+
+    current_product = Shop.objects.filter(id = request.GET.get('product')).first()
+    current_order, status = Orders.objects.get_or_create(holder=request.user, status='incart')
+    if status:
+        current_order.save()
+    suborder, status = SubOrders.objects.get_or_create(order=current_order, product=current_product)
+    if status: 
+        suborder.price = suborder.product.price * suborder.quantity
+        suborder.save()
+    else:
+        suborder.quantity += 1
+        suborder.price = suborder.product.price * suborder.quantity
+        suborder.save()
+    order_list = SubOrders.objects.filter(order=current_order)
+    current_order.total_price = 0
+    for item in order_list:
+        current_order.total_price += item.price
+
+    current_order.save()
+    assert isinstance(request, HttpRequest)
+    return redirect(reverse('shop'))
+
+
+def total_price(request, orderId):
+
+    current_order = Orders.objects.get(id = orderId)
+    order_list = SubOrders.objects.filter(order=current_order)
+    current_order.total_price = 0
+    for item in order_list:
+        current_order.total_price += item.price
+
+    current_order.save()
+    
+    if current_order.status == 'incart':
+        return redirect(reverse('cart'))
+    else:
+        return redirect(reverse('orderDetails', kwargs={'orderId': orderId}))
+
+def delete_item(request, item):
+    current_item = SubOrders.objects.get(id = item).delete()
+    return redirect(reverse('total_price', kwargs={'orderId': current_item.order.id}))
+
+def quantity_minus(request):
+    current_item = SubOrders.objects.filter(id = request.GET.get('item')).first()
+ 
+    current_item.quantity -= 1
+    if current_item.quantity == 0:
+        return redirect(reverse('delete_item', kwargs={'item': current_item.id}))
+    else:
+
+        current_item.price = current_item.product.price * current_item.quantity
+        current_item.save()
+    
+        return redirect(reverse('total_price', kwargs={'orderId': current_item.order.id }))
+
+def quantity_plus(request):
+    current_item = SubOrders.objects.filter(id = request.GET.get('item')).first()
+ 
+    current_item.quantity += 1
+    current_item.price = current_item.product.price * current_item.quantity
+    current_item.save()
+    
+    return redirect(reverse('total_price', kwargs={'orderId': current_item.order.id}))
+
+def deal_order(request):
+    current_order = Orders.objects.filter(holder=request.user, status='incart').first()
+    current_order.status = 'check'
+    current_order.save()
+    
+    return redirect(reverse('shop'))
+
+def orders(request):
+    current_orders = Orders.objects.all().exclude(status = 'incart')
+    assert isinstance(request, HttpRequest)
+    return render(
+        request,
+        'app/orders.html',
+        {
+            'status': 'admins',
+            'title':'Заказы',
+            'orders': current_orders,
+            'year':datetime.now().year,
+        }
+    )
+
+def myOrders(request):
+    current_orders = Orders.objects.filter(holder = request.user).exclude(status = 'incart')
+    assert isinstance(request, HttpRequest)
+    return render(
+        request,
+        'app/orders.html',
+        {
+            'status': 'user',
+            'title':'Мои заказы',
+            'orders': current_orders,
+            'year':datetime.now().year,
+        }
+    )
+
+def orderDetails(request, orderId):
+    currentOrder = Orders.objects.get(id = orderId)
+    currentProducts = SubOrders.objects.filter(order = currentOrder)
+
+    assert isinstance(request, HttpRequest)
+    return render(
+        request,
+        'app/cart.html',
+        {
+            'title':'Заказ',
+            'status':'edit',
+            'items': currentProducts,
+            'order': currentOrder,
+            'year':datetime.now().year,
+        }
+    )
+
+def delete_order(request):
+    current_item = Orders.objects.get(id = request.GET.get('order')).delete()
+    return redirect(reverse('shop'))

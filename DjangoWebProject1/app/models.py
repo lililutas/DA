@@ -50,5 +50,110 @@ class Comment(models.Model):
 		verbose_name_plural = 'Комментарии к статьям блога'
 
 
+class UserProfile(models.Model):
+	ROLES = (
+		('client', 'Клиент'),
+		('moder','Модераток'),
+		('admin','Администратор')
+	)
+
+	SIDES = (
+		('angel','Кровавые ангелы'),
+		('tiran','Тираниды'),
+		('none', 'Не выбрано')
+		
+		)
+
+	user = models.ForeignKey(User, on_delete = models.CASCADE, verbose_name = "Пользователь")
+	role = models.CharField(max_length = 300, choices = ROLES, verbose_name = "Роль")
+	choosedSide = models.CharField(max_length = 300, choices = SIDES, verbose_name = "Сторона")
+
+
+	def __str__(self):
+		return 'Пользователь'
+
+	class Meta:
+		db_table = 'UserProfile'
+		ordering = ['user']
+		verbose_name = 'Профили'
+		verbose_name_plural = 'Профили'
+
+class Shop(models.Model):
+
+	SIDES = (
+		('angel','Кровавые ангелы'),
+		('tiran','Тираниды'),
+		('none', 'Не выбрано')
+		
+		)
+	CATEGORY = (
+		('models','Модельки'),
+		('books','Книги'),
+		('lands','Поля'),
+		('add','Дополнительные детали'),
+		('tshirt','Футболки'),
+		('shirt','Толстовки'),
+		('cosplay','Косплей'),
+		('figurki','Фигурки'),
+		
+		)
+	name = models.CharField(max_length = 300, verbose_name = "Название")
+	category = models.CharField(max_length = 300, verbose_name = 'Категория', choices = CATEGORY)
+	desc = models.TextField(verbose_name = "Описание")
+	price = models.IntegerField(verbose_name = "Цена")
+	side = models.CharField(max_length = 300, choices = SIDES, verbose_name = "Сторона")
+	image = models.FileField(default = 'temp.jpg', verbose_name = 'Путь к картинке')
+
+	class Meta:
+		db_table = 'Shop'
+		ordering = ['id']
+		verbose_name = 'Товары'
+		verbose_name_plural = 'Товары'
+
+class Orders(models.Model):
+	STATUS = (
+		('incart', 'В корзине'),
+		('check', 'Проверяется'),
+		('indeliver', 'Доставляется'),
+		('delivered', 'Доставлен')
+	)
+	holder = models.ForeignKey(User, on_delete = models.CASCADE, verbose_name = 'Покупатель')
+	status = models.CharField(verbose_name = 'Статус', choices = STATUS, max_length=300)
+	total_price = models.IntegerField(default = 0, verbose_name = 'Итоговая стоимость')
+
+
+	def __str__(self):
+		return 'Заказ %s' % (self.id)
+
+	class Meta:
+		db_table = 'Orders'
+		ordering = ['holder']
+		verbose_name = 'Заказы'
+		verbose_name_plural = 'Заказы'
+
+class SubOrders(models.Model):
+	order = models.ForeignKey(Orders, on_delete = models.CASCADE, verbose_name = 'Заказ')
+	product = models.ForeignKey(Shop, on_delete = models.CASCADE, verbose_name = 'Товар')
+	quantity = models.IntegerField(default = 1, verbose_name = 'Количество')
+	price = models.IntegerField(default = 0, verbose_name = 'Стоимость товаров')
+	
+
+
+	def __str__(self):
+		return 'Товар %s к заказу %s' % (self.product, self.order)
+
+	class Meta:
+		db_table = 'SubOrders'
+		ordering = ['order']
+		verbose_name = 'Товары'
+		verbose_name_plural = 'Товары заказа'
+
+
+
+
 admin.site.register(Blog)
 admin.site.register(Comment)
+admin.site.register(UserProfile)
+admin.site.register(Shop)
+admin.site.register(Orders)
+admin.site.register(SubOrders)
